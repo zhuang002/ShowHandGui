@@ -4,10 +4,13 @@ import javax.swing.JFrame;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+
 import java.awt.BorderLayout;
 import javax.swing.JButton;
 import javax.swing.JPanel;
 import java.awt.event.ActionListener;
+import java.util.List;
 import java.awt.event.ActionEvent;
 
 public class GuiShowHand implements GuiController {
@@ -21,9 +24,11 @@ public class GuiShowHand implements GuiController {
 	Service server = null;
 	
 	private PlayerField[] playerFields = new PlayerField[2];
+	String[] names = {"Computer", "You"};
 	private JButton btnNewButton;
 	private JPanel panel;
-	private State state = State.done;
+
+	
 	
 	
 	
@@ -60,9 +65,14 @@ public class GuiShowHand implements GuiController {
 		btnNewButton = new JButton("New Round");
 		btnNewButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				setState(state);
+				/*if (btnNewButton.getText().equals("New Game")) {
+					btnNewButton.setText("New Round");
+					server.newGame();
+				}*/
 				server.newRound();
-				state = State.bet;
+				playerFields[0].setHeadsUp(false);
+				playerFields[1].setHeadsUp(true);
+				setState(State.bet);
 			}
 		});
 		frame.getContentPane().add(btnNewButton, BorderLayout.NORTH);
@@ -73,8 +83,8 @@ public class GuiShowHand implements GuiController {
 		
 		
 
-		playerFields[1] = new PlayerField(1, "You");
-		playerFields[0] = new PlayerField(0, "Computer");
+		playerFields[1] = new PlayerField(1, names[1]);
+		playerFields[0] = new PlayerField(0, names[0]);
 		playerFields[0].setHeadsUp(false);
 		playerFields[0].setAutomatic(true);
 		
@@ -87,13 +97,14 @@ public class GuiShowHand implements GuiController {
 		
 		
 		setState(State.done);
+		this.server.newGame();
 	}
 
 	private void setState(State state) {
 		// TODO Auto-generated method stub
-		this.state = state;
-		if (this.state == State.done) {
-			this.btnNewButton.setEnabled(false);
+
+		if (state == State.done) {
+			this.btnNewButton.setEnabled(true);
 		} else {
 			this.btnNewButton.setEnabled(false);
 		}
@@ -102,7 +113,7 @@ public class GuiShowHand implements GuiController {
 
 
 	@Override
-	public void displayCards(int player, Card[] cards) {
+	public void displayCards(int player, List<Card> cards) {
 		// TODO Auto-generated method stub
 		this.playerFields[player].displayCards(cards);
 	}
@@ -117,6 +128,29 @@ public class GuiShowHand implements GuiController {
 	public void displayInventories(int player, int inventory) {
 		// TODO Auto-generated method stub
 		this.playerFields[player].displayInventory(inventory);
+	}
+
+	@Override
+	public void roundDone() {
+		// TODO Auto-generated method stub
+		for (int i=0;i<this.playerFields.length;i++) {
+			this.playerFields[i].setHeadsUp(true);
+		}
+		this.setState(State.done);
+	}
+
+	@Override
+	public void gameOver(int player) {
+		// TODO Auto-generated method stub
+		
+		JOptionPane.showMessageDialog(null, names[player]+" run out of money, game over.");
+		this.setState(State.done);
+		//this.btnNewButton.setText("New Game");
+		//for (PlayerField field:this.playerFields) {
+			//field.repaintCardDeck();
+		//}
+		server.newGame();
+		
 	}
 
 }
